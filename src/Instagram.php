@@ -693,7 +693,20 @@ class Instagram
 
         // split header from JSON data
         // and assign each to a variable
-        list($headerContent, $jsonData) = explode("\r\n\r\n", $jsonData, 2);
+
+        // sometimes this explode did not return 2 arrays elements and produced an error.
+        // this error is catched here and the output of instagram is logged
+        $responseArray = explode("\r\n\r\n", $jsonData, 2);
+        if(count($responseArray) === 2)
+        {
+            $headerContent = $responseArray[0];
+            $jsonData = $responseArray[1];
+        }else
+        {
+            \Log::error('Could not split header from JSON data. Data returned by the Instagram API:');
+            \Log::error(serialize($jsonData));
+            throw new InstagramException('Error: _makeCall() - Instagram returned invalid data');
+        }
 
         // convert header content into an array
         $headers = $this->processHeaders($headerContent);
